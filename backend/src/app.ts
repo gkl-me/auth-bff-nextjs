@@ -23,25 +23,28 @@ interface IUser{
 
 const users:IUser[]=[]
 
-const USER_ID = "user_id "
+const USER_ID = "userId"
 
 let GLOBAL_COUNT = 0
-const accessToken = "accessToken " + String(GLOBAL_COUNT)  
-const refreshToken = "refreshToken " + String(GLOBAL_COUNT)
+let USER_COUNT = 1
+let  accessToken = "accessToken" + String(GLOBAL_COUNT)  
+let refreshToken = "refreshToken" + String(GLOBAL_COUNT)
 
 function authMiddleware(req:Request, res:Response, next:NextFunction) {
     try {
-        const token = req.cookies.accessToken
+        const token = req.headers.authorization?.split(" ")[1]
+        console.log("token",token)
         if (!token) {
             return res.status(401).json({ message: "Unauthorized" })
         }
 
-        const userId = USER_ID + token.split(" ")[1]
+        const userId = token.split("_")[1]
 
         const user = users.find(user => user.userId === userId)
         if (user?.status) {
             return res.status(403).json({ message: "Forbidden" })
         }
+        console.log("user authenticated",userId)
         req.user = {userId}
         next()
     } catch (error) {
@@ -51,8 +54,9 @@ function authMiddleware(req:Request, res:Response, next:NextFunction) {
 
 
 app.post("/login", (req, res) => {
+    console.log("/login")
     const { name, email } = req.body
-    const userId = USER_ID + String(GLOBAL_COUNT)
+    const userId = USER_ID + String(USER_COUNT)
     const user: IUser = {
         userId,
         name,
@@ -61,10 +65,33 @@ app.post("/login", (req, res) => {
     }
     users.push(user)
     GLOBAL_COUNT++
+    USER_COUNT++
+    accessToken = "accessToken" + String(GLOBAL_COUNT)  +"_" + userId
+    refreshToken = "refreshToken" + String(GLOBAL_COUNT) +"_" + userId
+    console.log("user logged in",user)
     res.json({ message: "Login successful",accessToken,refreshToken})
 })
 
+
+app.post("/refresh-token", (req, res) => {
+    console.log("/refresh-token")
+    const { token } = req.body
+    const userId = token.split("_")[1]
+    const user = users.find(user => user.userId === userId)
+    if (!user) {
+        return res.status(404).json({ message: "User not found" })
+    }
+    GLOBAL_COUNT++
+    accessToken = "accessToken" + String(GLOBAL_COUNT)  +"_" + userId
+    refreshToken = "refreshToken" + String(GLOBAL_COUNT) +"_" + userId
+    console.log("user token refreshed",user)
+    console.log("NEW TOKEN",accessToken,refreshToken)
+    res.json({ message: "Refresh token successful",accessToken,refreshToken})
+})
+
+
 app.get('/profile',authMiddleware,(req,res) => {  
+    console.log("/profile")
     const user = users.find(user => user.userId === req?.user?.userId)
     if (!user) {
         return res.status(404).json({ message: "User not found" })
@@ -74,6 +101,7 @@ app.get('/profile',authMiddleware,(req,res) => {
 
 
 app.patch('/update-profile',authMiddleware,(req,res) => {
+    console.log("/update-profile")
     const { name, email } = req.body
     const user = users.find(user => user.userId === req?.user?.userId)
     if (!user) {
@@ -85,8 +113,17 @@ app.patch('/update-profile',authMiddleware,(req,res) => {
 })
 
 
-app.patch('/update-status',(req,res) => {
-    const user = users.find(user => user.userId === req?.user?.userId)
+app.get('/admin/users',authMiddleware,(req,res) => {
+    console.log("/admin/users")
+    res.json({ message: "Users",users })
+})
+
+
+app.patch('/admin/user-status/:id',authMiddleware,(req,res) => {
+    console.log("/admin/user-status/:id")
+
+    const userId = req.params.id
+    const user = users.find(user => user.userId === userId)
     if (!user) {
         return res.status(404).json({ message: "User not found" })
     }
