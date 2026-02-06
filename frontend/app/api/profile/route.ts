@@ -8,6 +8,7 @@ export async function GET() {
     const response = await authService.getProfile();
     return NextResponse.json(response.data);
   } catch (error: any) {
+    console.log(error)
     const status = error.response?.status || 500;
     const message = error.response?.data?.message || "Internal Server Error";
     return NextResponse.json({ message }, { status });

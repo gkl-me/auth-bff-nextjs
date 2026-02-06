@@ -72,13 +72,16 @@ api.interceptors.response.use(
           // Update session and cookie
           const session = await getSession();
           session.accessToken = accessToken;
-          await session.save();
-
-          cookieStore.set("refreshToken", newRefreshToken, {
-             httpOnly: true,
-             secure: process.env.NODE_ENV === "production",
-             // set other options if needed like path
-          });
+          try {
+            await session.save();
+            cookieStore.set("refreshToken", newRefreshToken, {
+               httpOnly: true,
+               secure: process.env.NODE_ENV === "production",
+               // set other options if needed like path
+            });
+          } catch (saveError) {
+             console.warn("Failed to save session/cookies in interceptor (likely Server Component). Proceeding with in-memory token.", saveError);
+          }
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;

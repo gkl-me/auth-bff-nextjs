@@ -5,6 +5,7 @@ import Link from "next/link";
 import { User } from "@/services/auth.service";
 import { handleServerError } from "@/lib/auth-helpers";
 
+
 export default async function ProfilePage() {
   let user: User | null = null;
   let error = null;

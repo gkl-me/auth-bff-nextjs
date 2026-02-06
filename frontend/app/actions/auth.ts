@@ -47,3 +47,15 @@ export async function updateProfileAction(name: string, email: string) {
     return { error: message };
   }
 }
+
+
+export async function getProfileAction() {
+  try {
+    const response = await authService.getProfile();
+    return response.data;
+  } catch (error: any) {
+    handleServerError(error);
+    const message = error.response?.data?.message || "Get profile failed";
+    return { error: message };
+  }
+}
