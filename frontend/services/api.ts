@@ -56,13 +56,14 @@ api.interceptors.response.use(
           const cookieStore = await cookies();
           const refreshToken = cookieStore.get("refreshToken")?.value;
 
-          if (!refreshToken) {
-            throw new Error("No refresh token");
-          }
+          // if (!refreshToken) {
+          //   throw new Error("No refresh token");
+          // }
 
           // Call backend refresh
           // We can't use 'api' instance here to avoid infinite loop if this fails?
           // Or just use axios directly.
+          console.log("refresh from axios")
           const response = await axios.post(`${API_URL}/refresh-token`, {
             token: refreshToken,
           });

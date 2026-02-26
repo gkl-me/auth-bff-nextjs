@@ -42,6 +42,7 @@ export async function updateProfileAction(name: string, email: string) {
     revalidatePath("/profile");
     return { success: true };
   } catch (error: any) {
+    console.log(error)
     handleServerError(error);
     const message = error.response?.data?.message || "Update failed";
     return { error: message };

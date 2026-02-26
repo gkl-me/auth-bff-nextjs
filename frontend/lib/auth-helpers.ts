@@ -22,7 +22,7 @@ export function isProtectedRoute(pathname: string): boolean {
 export async function refreshAuthToken(refreshToken: string): Promise<TokenResponse | null> {
   try {
     // Note: Use absolute URL for server-side fetches
-    const refreshRes = await fetch("http://localhost:3001/refresh-token", {
+    const refreshRes = await fetch("http://localhost:3001/refreshtoken///", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: refreshToken }),
@@ -113,8 +113,7 @@ export async function updateSessionAndCookies(
 
 //function to redirect if the error status is 401 or 403
 export function handleServerError(error: unknown) {
-  if (error.response?.status === 401 || error.response?.status === 403) {
-    redirect("/login");
-  }
+
+  redirect('/login')
 
 }
